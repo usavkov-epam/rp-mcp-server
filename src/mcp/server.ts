@@ -1,50 +1,92 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
+import { completable } from "@modelcontextprotocol/sdk/server/completable.js";
 
-import { getLaunchesTool } from "./tools/launches.tool";
+import registerGetItemsToInvestigateTool from "./tools/get_test_items_to_investigate";
+import registerGetLaunchesTool from "./tools/get_launches";
+import z from "zod";
+import { getItemsToInvestigate } from "../report-portal/services";
 
 export const mcpServer = new McpServer({
   name: "folio-report-portal-mcp-server",
   version: "1.0.0",
 });
 
-mcpServer.registerTool(
-  "get_launches",
+// ========== TOOLS ==========
+
+/* Launch */
+registerGetLaunchesTool(mcpServer);
+
+/* Item */
+registerGetItemsToInvestigateTool(mcpServer);
+
+// ===========================
+
+// ========= PROMPTS =========
+mcpServer.registerPrompt(
+  "run-failed-cypress-tests-locally",
   {
-    title: "Get recent launches",
-    description: "Fetch recent launches from ReportPortal",
-    inputSchema: {
-      limit: z.number()
-        .min(1)
-        .max(100)
-        .default(5)
-        .describe("Number of launches to fetch"),
-    },
-    outputSchema: {
-      launches: z.array(z.object({
-        id: z.number(),
-        name: z.string(),
-        number: z.number(),
-        status: z.string(),
-        startTime: z.number(),
-        endTime: z.number().optional(),
-      })),
+    title: "Run Cypress Tests",
+    description: "Run Cypress tests for items marked for investigation",
+    argsSchema: {
+      name: completable(
+        z.string(),
+        (value) => ['runNightlyCypressEurekaTests', 'folioQualityGates'].filter(t => t.toLowerCase().includes(value.toLowerCase()))
+      ).describe("Test to run"),
+      team: completable(
+        z.string(),
+        (value) => ["Thunderjet", "Spitfire", "Firebird", "Corsair", "Folijet", "Vega", "Volaris"].filter(t => t.toLowerCase().includes(value.toLowerCase()))
+      ).describe("Team to filter tests by"),
     },
   },
-  async ({ limit }) => {
-    const launches = await getLaunchesTool(limit);
-    console.error('Launches retrieved in MCP tool:', launches);
-    const structured = { launches };
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(structured, null, 2),
-        },
-      ],
-      structuredContent: structured,
-    };
-  }
-);
+  async ({ name, team }) => {
+    try {
+      const { testPaths } = await getItemsToInvestigate({ name, team });
+
+      if (!testPaths || testPaths.length === 0) {
+        return {
+          messages: [
+            {
+              role: "assistant",
+              content: { type: "text", text: `No test paths found for team: ${team || "any"}` },
+            },
+          ],
+        };
+      }
+
+      const specArg = testPaths.join(",");
+      const command = `npx cypress run --spec "${specArg}" --headless --quiet`;
+
+      return {
+        messages: [
+          {
+            role: "user",
+            content: { type: "text", text: `Running ${testPaths.length} Cypress test(s) for team: ${team || "all"}` },
+          },
+          {
+            role: "assistant",
+            content: {
+              type: "text",
+              text: "Executing command:\n" + command,
+            },
+          },
+        ],
+      };
+    } catch (error: any) {
+      return {
+        messages: [
+          {
+            role: "assistant",
+            content: {
+              type: "text",
+              text: `Error running Cypress: ${error.message}`,
+            },
+          },
+        ],
+      };
+    }
+  },
+)
+
+// ===========================
 
 export default mcpServer;
