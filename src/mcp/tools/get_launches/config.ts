@@ -1,8 +1,11 @@
-import { inputSchema, outputSchema } from './schema';
+import {
+  inputSchema,
+  outputSchema,
+} from './schema';
 
 export default {
   title: "Get recent launches",
-  description: "Fetch recent launches from ReportPortal",
+  description: "Fetch recent launches from Report Portal",
   inputSchema,
   outputSchema,
 }

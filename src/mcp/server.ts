@@ -1,10 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { completable } from "@modelcontextprotocol/sdk/server/completable.js";
+import z from "zod";
 
+import { getItemsToInvestigate } from "../report-portal/services";
 import registerGetItemsToInvestigateTool from "./tools/get_test_items_to_investigate";
 import registerGetLaunchesTool from "./tools/get_launches";
-import z from "zod";
-import { getItemsToInvestigate } from "../report-portal/services";
 
 export const mcpServer = new McpServer({
   name: "folio-report-portal-mcp-server",

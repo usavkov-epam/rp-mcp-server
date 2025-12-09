@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 
-import { default as config } from './config';
 import { getLaunches } from '../../../report-portal/services';
+import { default as config } from './config';
 
 export default function registerGetLaunchesTool(mcpServer: McpServer) {
   mcpServer.registerTool(
