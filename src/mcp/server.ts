@@ -5,6 +5,7 @@ import z from "zod";
 import { getItemsToInvestigate } from "../report-portal/services";
 import registerGetItemsToInvestigateTool from "./tools/get_test_items_to_investigate";
 import registerGetLaunchesTool from "./tools/get_launches";
+import registerMarkTestsFlakyTool from "./tools/mark_tests_flaky";
 
 export const mcpServer = new McpServer({
   name: "folio-report-portal-mcp-server",
@@ -18,6 +19,7 @@ registerGetLaunchesTool(mcpServer);
 
 /* Item */
 registerGetItemsToInvestigateTool(mcpServer);
+registerMarkTestsFlakyTool(mcpServer);
 
 // ===========================
 
@@ -86,6 +88,39 @@ mcpServer.registerPrompt(
     }
   },
 )
+
+mcpServer.registerPrompt(
+  'investigate-and-mark-flaky-tests',
+  {
+    title: "Investigate and Mark Flaky Tests from Report Portal",
+    description: "A workflow to investigate failing tests from Report Portal by running them locally and marking passed ones as flaky",
+    argsSchema: {
+      team: z.string().describe('Team identifier (e.g., Volaris, Thunderjet, Spitfire, Firebird, Corsair, Folijet, Vega)'),
+      launchName: z.string().optional().describe('Name of the test launch to investigate (default: runNightlyCypressEurekaTests)'),
+    },
+  },
+  async ({ 
+    team, 
+    launchName = "runNightlyCypressEurekaTests",
+  }) => {
+    return {
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `
+Using #rp-folio-mcp-server 
+1. Get recent ${launchName} tests marked for investigation for the ${team} team.
+2. Run Cypress for these tests in Chrome. Wait for the run to complete.
+3. Mark passed tests (that were failing in the ${launchName}) as flaky.
+`,
+          },
+        },
+      ],
+    };
+  }
+);
 
 // ===========================
 

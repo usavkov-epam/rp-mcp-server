@@ -111,6 +111,12 @@ See [docs](docs/grab_failed_tests.md).
 
 - **get_launches**: Fetch recent launches from ReportPortal
 - **get_test_items_to_investigate**: Fetch recent test items marked for investigation
+- **mark_tests_flaky**: Mark tests that passed as flaky in ReportPortal
+
+## Available MCP Prompts
+
+- **run-failed-cypress-tests-locally**: Run Cypress tests for items marked for investigation
+- **investigate-and-mark-flaky-tests**: A complete workflow to investigate failing tests from ReportPortal by running them locally and marking passed ones as flaky
 
 ## Project Structure
 

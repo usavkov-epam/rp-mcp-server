@@ -29,6 +29,7 @@ The server should be available at `http://localhost:3003/mcp` (or on the port yo
 4. Check that the available tools are listed:
    - `get_launches`
    - `get_test_items_to_investigate`
+   - `mark_tests_flaky`
 
 ![VS Code MCP Server Start Example](../assets/mcp-server-status.png)
 
@@ -57,6 +58,22 @@ Expected format in `to_investigate.cy.js`:
 ```
 
 ![Result Example](../assets/final-result-example.png)
+
+---
+
+### Alternative: Automated Workflow with Flaky Test Marking
+
+You can use the `investigate-and-mark-flaky-tests` prompt for a streamlined workflow that automatically marks flaky tests in ReportPortal:
+
+```
+Using #rp-folio-mcp-server 
+
+1. Get recent runNightlyCypressEurekaTests tests marked for investigation for the Volaris team.
+2. Run Cypress for these tests in Chrome. Wait for the run to complete.
+3. Mark passed tests (that were failing in the runNightlyCypressEurekaTests) as flaky.
+```
+
+---
 
 ## Available Teams
 
