@@ -1,10 +1,11 @@
 import rpClient from "../client";
-import { ITEM_V2_API } from "../constants/api";
+import { ITEM_V2_API, ITEM_API } from "../constants/api";
 import type { TestItem } from "../types";
 import { getLatestLaunch } from "./launch.service";
 
 const LIMIT = 1000
 const TO_INVESTIGATE_ISSUE_TYPE = 'ti001';
+const FLAKY_ISSUE_TYPE = 'ab_uvbcfwkvo3e8';
 const LAUNCH_PROVIDER_TYPE = 'launch';
 
 export async function getItemsV2({ params }: { params?: any }) {
@@ -44,13 +45,36 @@ export async function getItemsToInvestigate({ name: launchName, team }: { name: 
   const { data, totalRecords } = await getItemsV2({ params });
 
   return {
-    data,
     totalRecords,
-    testPaths: Array.from(new Set(
-      data
-        .map((item) => item.codeRef)
-        .filter(Boolean)
-        .map((codeRef) => codeRef!.replace(/\.cy\.(js|ts).*$/, '.cy.$1'))
-    )) as string[],
+    items: data.map(item => ({
+      testPath: (item?.codeRef || '').replace(/\.cy\.(js|ts).*$/, '.cy.$1'),
+      testItemId: item.id,
+    })),
+  };
+}
+
+export async function markTestsAsFlaky({ testItemIds }: { testItemIds: number[] }) {
+  const issues = testItemIds.map((id) => ({
+    id,
+    testItemId: id,
+    issue: {
+      issueType: FLAKY_ISSUE_TYPE,
+      autoAnalyzed: false,
+      ignoreAnalyzer: false,
+      externalSystemIssues: [],
+    },
+  }));
+
+  const payload = { issues };
+
+  console.error('Marking tests as flaky:', payload);
+
+  const { data } = await rpClient.put(ITEM_API, payload);
+
+  console.error('Response from marking tests as flaky:', data);
+
+  return {
+    success: true,
+    updatedCount: testItemIds.length,
   };
 }

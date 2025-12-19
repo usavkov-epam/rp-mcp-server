@@ -19,16 +19,9 @@ export const inputSchema = {
 };
 
 export const outputSchema = {
-  // items: z.array(z.object({
-  //   id: z.number(),
-  //   uuid: z.string(),
-  //   name: z.string(),
-  //   status: z.string(),
-  //   startTime: z.number(),
-  //   endTime: z.number().optional(),
-  //   codeRef: z.string().optional(),
-  //   testCaseId: z.string().optional(),
-  // })),
-  // totalRecords: z.number(),
-  testPaths: z.array(z.string()),
+  items: z.array(z.object({
+    testPath: z.string(),
+    testItemId: z.number(),
+  })),
+  totalRecords: z.number(),
 };

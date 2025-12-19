@@ -9,12 +9,11 @@ export default function registerGetItemsToInvestigateTool(mcpServer: McpServer) 
     config,
     async ({ name, team }) => {
       const {
-        data: items,
         totalRecords,
-        testPaths,
+        items,
       } = await getItemsToInvestigate({ name, team });
       console.error('Items retrieved in MCP tool:', items, totalRecords);
-      const structured = { testPaths };
+      const structured = { items, totalRecords };
 
       return {
         content: [
